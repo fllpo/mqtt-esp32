@@ -1,10 +1,8 @@
 from database_handler import DatabaseHandler
 
-# Cria instância do banco de dados
 db_handler = DatabaseHandler()
 
-# Variáveis para acumular as leituras
-current_readings = {
+leituras_atuais = {
     'temperatura': None,
     'umidade': None,
     'pressao': None
@@ -14,34 +12,32 @@ def on_connect(client, userdata, flags, rc, properties=None):
     print(f"CONNACK recebido com código {rc}.")
 
 def on_subscribe(client, userdata, mid, granted_qos, properties=None):
-    print(f"Inscrito com mid {mid} e QoS {granted_qos}")
+    print(f"Inscrito com sucesso! ID: {mid} {granted_qos[0]}")
 
 def on_message(client, userdata, msg):
     try:
-        topic = msg.topic
+        topico = msg.topic
         payload = msg.payload.decode("utf-8")
-        value = float(payload)
-        
-        print(f"Mensagem recebida - Tópico: {topic}, Valor: {value}")
-        
-        # Identifica o tipo de leitura pelo tópico
-        if 'temperatura' in topic:
-            current_readings['temperatura'] = value
-        elif 'umidade' in topic:
-            current_readings['umidade'] = value
-        elif 'pressao' in topic:
-            current_readings['pressao'] = value
+        valor = float(payload)
+                
+        if 'temperatura' in topico:
+            leituras_atuais['temperatura'] = valor
+            print(f"Temperatura: {valor} °C")
+        elif 'umidade' in topico:
+            leituras_atuais['umidade'] = valor
+            print(f"Umidade: {valor} %")
+        elif 'pressao' in topico:
+            leituras_atuais['pressao'] = valor
+            print(f"Pressão: {valor} hPa")
             
-        # Verifica se temos todas as leituras
-        if all(v is not None for v in current_readings.values()):
+        if all(v is not None for v in leituras_atuais.values()):
             if db_handler.insert_reading(
-                current_readings['temperatura'],
-                current_readings['umidade'],
-                current_readings['pressao']
+                leituras_atuais['temperatura'],
+                leituras_atuais['umidade'],
+                leituras_atuais['pressao']
             ):
-                # Reseta as leituras após inserção bem-sucedida
-                for key in current_readings:
-                    current_readings[key] = None
+                for i in leituras_atuais:
+                    leituras_atuais[i] = None
                     
     except ValueError as e:
         print(f"Erro ao processar payload: {e}")

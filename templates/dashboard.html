@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        .card-panel {
+            border-radius: 10px;
+        }
+
+        .card-title {
+            font-weight: bold;
+        }
+
+        .valor {
+            font-size: 2.5em;
+            margin: 10px 0;
+        }
+
+        .unidade {
+            font-size: 1.5em;
+            opacity: 0.8;
+        }
+
+        .atualizacao {
+            margin-top: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h4 class="center-align">ESP32 - Cacuia</h4>
+
+        <div class="row">
+            <!-- Temperatura -->
+            <div class="col s12 m4">
+                <div class="card-panel red lighten-2 white-text">
+                    <span class="card-title">
+                        <i class="material-icons left">thermostat</i> Temperatura
+                    </span>
+                    <div class="valor" id="temperatura">--</div>
+                    <div class="unidade">°C</div>
+                </div>
+            </div>
+
+            <!-- Umidade -->
+            <div class="col s12 m4">
+                <div class="card-panel blue lighten-2 white-text">
+                    <span class="card-title">
+                        <i class="material-icons left">water</i> Umidade
+                    </span>
+                    <div class="valor" id="umidade">--</div>
+                    <div class="unidade">%</div>
+                </div>
+            </div>
+
+            <!-- Pressão -->
+            <div class="col s12 m4">
+                <div class="card-panel purple lighten-2 white-text">
+                    <span class="card-title">
+                        <i class="material-icons left">speed</i> Pressão
+                    </span>
+                    <div class="valor" id="pressao">--</div>
+                    <div class="unidade">hPa</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="center-align atualizacao" id="hora">
+            <i class="material-icons tiny">access_time</i>
+            Última atualização: --:--
+        </div>
+    </div>
+
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    
+    <script>
+        function fetchData() {
+            fetch('/api/dados')
+                .then(response => response.json())
+                .then(data => {
+                    $('#temperatura').text(data.temperatura);
+                    $('#umidade').text(data.umidade);
+                    $('#pressao').text(data.pressao);
+                    $('#hora').html(`<i class="material-icons tiny">access_time</i> Última atualização: ${data.timestamp}`);
+                });
+        }
+
+        setInterval(fetchData, 2000);
+        fetchData();
+    </script>
+</body>
+
+</html>

@@ -23,6 +23,7 @@ class DatabaseHandler:
             self.connection = mysql.connector.connect(**self.db_config)
             self.cursor = self.connection.cursor()
             print("Conectado ao banco de dados MySQL")
+
         except mysql.connector.Error as err:
             print(f"Erro ao conectar ao banco de dados: {err}")
             raise
@@ -40,6 +41,7 @@ class DatabaseHandler:
             """)
             self.connection.commit()
             print("Tabela verificada/criada com sucesso")
+
         except mysql.connector.Error as err:
             print(f"Erro ao criar tabela: {err}")
             self.connection.rollback()
@@ -51,16 +53,46 @@ class DatabaseHandler:
             INSERT INTO dados_sensor (timestamp, temperatura, umidade, pressao)
             VALUES (%s, %s, %s, %s)
             """
-            values = (datetime.now(), temperatura, umidade, pressao)
-            
-            self.cursor.execute(query, values)
+            valor = (datetime.now(), temperatura, umidade, pressao)
+
+            self.cursor.execute(query, valor)
             self.connection.commit()
             print("Dados inseridos com sucesso")
             return True
+
         except mysql.connector.Error as err:
             print(f"Erro ao inserir dados: {err}")
             self.connection.rollback()
             return False
+
+    def get_latest_data(self):
+        try:
+            self.connect()
+
+            query = """
+                SELECT * FROM dados_sensor
+                ORDER BY timestamp DESC
+                LIMIT 1
+                """
+
+            self.cursor.execute(query)
+            result = self.cursor.fetchone()
+
+            if result:
+                return {
+                    "timestamp": result[1].strftime("%H:%M"),
+                    "temperatura": result[2],
+                    "umidade": result[3],
+                    "pressao": result[4],
+                }
+            else:
+                return None
+
+        except Exception as e:
+            print(f"Erro ao buscar dados: {e}")
+            return None
+        finally:
+            self.close()
 
     def close(self):
         if self.cursor:
