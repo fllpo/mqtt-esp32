@@ -8,7 +8,6 @@ def dashboard():
 
 @app.route('/api/dados')
 def api_dados():
-    sensor_data = db_handler.get_latest_data()
-    return jsonify(sensor_data)
+    return jsonify(db_handler.get_latest_data())
 
 app.run(host="localhost", port=5000, debug=True, use_reloader=False)

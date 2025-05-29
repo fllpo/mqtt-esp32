@@ -30,15 +30,17 @@ class DatabaseHandler:
 
     def create_table(self):
         try:
-            self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS dados_sensor (
+            self.cursor.execute(
+                """
+            CREATE TABLE IF NOT EXISTS clima (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 timestamp DATETIME,
                 temperatura FLOAT,
                 umidade FLOAT,
                 pressao FLOAT
             )
-            """)
+            """
+            )
             self.connection.commit()
             print("Tabela verificada/criada com sucesso")
 
@@ -50,14 +52,16 @@ class DatabaseHandler:
     def insert_reading(self, temperatura, umidade, pressao):
         try:
             query = """
-            INSERT INTO dados_sensor (timestamp, temperatura, umidade, pressao)
+            INSERT INTO clima (timestamp, temperatura, umidade, pressao)
             VALUES (%s, %s, %s, %s)
             """
             valor = (datetime.now(), temperatura, umidade, pressao)
 
             self.cursor.execute(query, valor)
             self.connection.commit()
-            print("Dados inseridos com sucesso")
+            print(
+                f"Dados inseridos com sucesso ({valor[0].strftime('%d/%m/%Y às %H:%M')}"
+            )
             return True
 
         except mysql.connector.Error as err:
@@ -70,7 +74,7 @@ class DatabaseHandler:
             self.connect()
 
             query = """
-                SELECT * FROM dados_sensor
+                SELECT * FROM clima
                 ORDER BY timestamp DESC
                 LIMIT 1
                 """
@@ -80,7 +84,7 @@ class DatabaseHandler:
 
             if result:
                 return {
-                    "timestamp": result[1].strftime("%H:%M"),
+                    "timestamp": result[1].strftime("%d/%m/%Y às %H:%M"),
                     "temperatura": result[2],
                     "umidade": result[3],
                     "pressao": result[4],
