@@ -15,6 +15,7 @@ class DatabaseHandler:
             'password': os.getenv("DB_PASSWORD"),
             'database': os.getenv("DB_NAME")
         }
+        self.nome_tabela = "clima"
         self.connect()
         self.create_table()
 
@@ -31,13 +32,22 @@ class DatabaseHandler:
     def create_table(self):
         try:
             self.cursor.execute(
-                """
-            CREATE TABLE IF NOT EXISTS clima (
+                f"""
+            CREATE TABLE IF NOT EXISTS {self.nome_tabela} (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                timestamp DATETIME,
-                temperatura FLOAT,
-                umidade FLOAT,
-                pressao FLOAT
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                temperatura_atual FLOAT,
+                temperatura_max FLOAT,
+                temperatura_min FLOAT,
+                umidade_atual FLOAT,
+                umidade_max FLOAT,
+                umidade_min FLOAT,
+                pressao_atual FLOAT,
+                pressao_max FLOAT,
+                pressao_min FLOAT,
+                orvalho_atual FLOAT,
+                orvalho_max FLOAT,
+                orvalho_min FLOAT
             )
             """
             )
@@ -49,18 +59,32 @@ class DatabaseHandler:
             self.connection.rollback()
             raise
 
-    def insert_reading(self, temperatura, umidade, pressao):
+    def insert_reading(self, temperatura_atual, temperatura_max, temperatura_min, 
+                        umidade_atual, umidade_max, umidade_min,
+                        pressao_atual, pressao_max, pressao_min,
+                        orvalho_atual, orvalho_max, orvalho_min):
         try:
-            query = """
-            INSERT INTO clima (timestamp, temperatura, umidade, pressao)
-            VALUES (%s, %s, %s, %s)
+            query = f"""
+            INSERT INTO {self.nome_tabela} (
+                temperatura_atual, temperatura_max, temperatura_min, 
+                umidade_atual, umidade_max, umidade_min,
+                pressao_atual, pressao_max, pressao_min, 
+                orvalho_atual, orvalho_max, orvalho_min
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            valor = (datetime.now(), temperatura, umidade, pressao)
+
+            valor = (
+                temperatura_atual, temperatura_max, temperatura_min,
+                umidade_atual, umidade_max, umidade_min,
+                pressao_atual, pressao_max, pressao_min,
+                orvalho_atual, orvalho_max, orvalho_min
+            )
 
             self.cursor.execute(query, valor)
             self.connection.commit()
             print(
-                f"Dados inseridos com sucesso ({valor[0].strftime('%d/%m/%Y às %H:%M')}"
+                f"Dados inseridos com sucesso - ({datetime.now().strftime('%d/%m/%Y às %H:%M')})\n"
             )
             return True
 
@@ -71,10 +95,10 @@ class DatabaseHandler:
 
     def get_latest_data(self):
         try:
-            self.connect()
-
-            query = """
-                SELECT * FROM clima
+            self.connect() 
+            
+            query = f"""
+                SELECT * FROM {self.nome_tabela}
                 ORDER BY timestamp DESC
                 LIMIT 1
                 """
@@ -84,10 +108,19 @@ class DatabaseHandler:
 
             if result:
                 return {
-                    "timestamp": result[1].strftime("%d/%m/%Y às %H:%M"),
-                    "temperatura": result[2],
-                    "umidade": result[3],
-                    "pressao": result[4],
+                    "timestamp": result[1],
+                    "temperatura_atual": result[2],
+                    "temperatura_max": result[3],
+                    "temperatura_min": result[4],
+                    "umidade_atual": result[5],
+                    "umidade_max": result[6],
+                    "umidade_min": result[7],
+                    "pressao_atual": result[8],
+                    "pressao_max": result[9],
+                    "pressao_min": result[10],
+                    "orvalho_atual": result[11],
+                    "orvalho_max": result[12],
+                    "orvalho_min": result[13],
                 }
             else:
                 return None

@@ -87,6 +87,19 @@
                     
                 </div>
             </div>
+
+            <!-- Chuva-->
+            <div class="col s12 m4">
+                <div class="card-panel blue darken-2 white-text">
+                    <div class="card-title">
+                        <i class="material-icons left">water_drop</i> Probabilidade de chuva
+                    </div>
+                    <div style="display: flex; align-items: baseline;">
+                        <div class="valor" id="probabilidade_chuva" style="margin-right: 8px;">--</div>
+                        <div class="unidade">%</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="center-align atualizacao" id="hora">
@@ -94,21 +107,33 @@
             Última atualização: --/--/---- às --:--
         </div>
     </div>
-
+    <footer class="page-footer black darken-2">
+        <div class="footer-copyright">
+            <div class="container center-align">
+                Desenvolvido por <a href="https://github.com/fllpo" target="_blank" class="white-text">Fellipe Oliveira</a>
+            </div>
+        </div>
+    </footer>
     
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-
     
     <script>
         function fetchData() {
-            fetch('/api/dados')
+            fetch('/api/dados_sensor')
                 .then(response => response.json())
                 .then(data => {
                     $('#temperatura').text(data.temperatura);
                     $('#umidade').text(data.umidade);
                     $('#pressao').text(data.pressao);
                     $('#hora').html(`<i class="material-icons tiny">access_time</i> Última atualização: ${data.timestamp}`);
+                });
+
+            fetch('/api/previsao')
+                .then(response => response.json())
+                .then(data => {
+                    $('#probabilidade_chuva').text(data.probabilidade_chuva);
                 });
         }
         setInterval(fetchData, 2000);
