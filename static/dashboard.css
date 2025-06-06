@@ -1,0 +1,22 @@
+.card-panel {
+    border-radius: 10px;
+}
+
+.card-title {
+    font-weight: bold;
+}
+
+.valor {
+    font-size: 2.5em;
+    margin: 10px 0;
+}
+
+.unidade {
+    font-size: 1.5em;
+    opacity: 0.8;
+}
+
+.atualizacao {
+    margin-top: 20px;
+    color: grey;
+}

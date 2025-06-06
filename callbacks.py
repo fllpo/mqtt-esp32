@@ -1,9 +1,9 @@
 from database_handler import DatabaseHandler
-from previsao import Previsor
 import json
+import os
+from dotenv import load_dotenv
 
 db_handler = DatabaseHandler()
-#previsor = Previsor()
 
 leituras_atuais = {
     "temperatura_atual": None,
@@ -23,14 +23,25 @@ leituras_atuais = {
     "orvalho_min": None,
 }
 
+def subscribe_topics(client):
+    client.subscribe(os.getenv("TOPIC"), qos=1)
+
 def on_connect(client, userdata, flags, rc, properties=None):
     print(f"CONNACK recebido com código {rc}.")
+    if rc == 0:
+        print("Conectado com sucesso ao broker MQTT!")
+        subscribe_topics(client)
+
+def on_disconnect(client, userdata, rc, properties=None):
+    print("Desconectado do broker MQTT com código:", rc)
+    if rc != 0:
+        print("Tentando reconectar...")
+        client.reconnect()
 
 def on_subscribe(client, userdata, mid, granted_qos, properties=None):
     print(f"Inscrito com sucesso! ID: {mid} {granted_qos[0]}")
 
 def on_message(client, userdata, msg):
-    
     try:
         topico = msg.topic
         payload = msg.payload.decode("utf-8")
@@ -61,7 +72,6 @@ def on_message(client, userdata, msg):
             leituras_atuais['umidade_max'] = extremos['umidade']['max']
             leituras_atuais['orvalho_min'] = extremos['ponto_orvalho']['min']
             leituras_atuais['orvalho_max'] = extremos['ponto_orvalho']['max']
-            
 
         if all(v is not None for v in leituras_atuais.values()):
             if db_handler.insert_reading(
