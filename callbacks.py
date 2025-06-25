@@ -22,21 +22,22 @@ leituras_atuais = {
     "orvalho_max": None,
     "orvalho_min": None,
 }
-
-def subscribe_topics(client):
-    client.subscribe(os.getenv("TOPIC"), qos=1)
-
+    
 def on_connect(client, userdata, flags, rc, properties=None):
-    print(f"CONNACK recebido com código {rc}.")
-    if rc == 0:
+    if rc != 0:
+        print(f"CONNACK recebido com código {rc}.")
+    else:
         print("Conectado com sucesso ao broker MQTT!")
-        subscribe_topics(client)
+        client.subscribe(os.getenv("TOPIC"), qos=1)
 
-def on_disconnect(client, userdata, rc, properties=None):
+def on_disconnect(client, userdata, flags, rc, properties=None):
     print("Desconectado do broker MQTT com código:", rc)
     if rc != 0:
         print("Tentando reconectar...")
-        client.reconnect()
+        try:
+            client.reconnect()
+        except Exception as e:
+            print(f"Falha na reconexão: {e}")
 
 def on_subscribe(client, userdata, mid, granted_qos, properties=None):
     print(f"Inscrito com sucesso! ID: {mid} {granted_qos[0]}")
