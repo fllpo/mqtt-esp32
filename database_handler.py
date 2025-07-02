@@ -93,6 +93,21 @@ class DatabaseHandler:
             self.connection.rollback()
             return False
 
+    def get_rag_data(self, query):
+        try:
+            self.connect() 
+            self.cursor.execute(query)
+            results = self.cursor.fetchall()
+            return results
+
+        except mysql.connector.Error as err:
+            print(f"Erro ao buscar dados: {err}")
+            return None
+        finally:
+            self.close()
+
+
+
     def get_latest_data(self):
         try:
             self.connect() 

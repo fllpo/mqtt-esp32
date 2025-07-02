@@ -1,3 +1,4 @@
+
 .card-panel {
     border-radius: 10px;
 }
@@ -19,4 +20,43 @@
 .atualizacao {
     margin-top: 20px;
     color: grey;
+}
+
+
+.rag-section {
+    margin-top: 30px;
+    
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.rag-header {
+    background: linear-gradient(45deg, var(--secondary), var(--primary));
+    color: black;
+    padding: 15px 20px;
+}
+
+.rag-body {
+    padding: 20px;
+}
+
+
+footer {
+    background-color: black;
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 0.9em;
+    margin-top: 40px;
+}
+
+footer a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+footer a:hover {
+    text-decoration: underline;
 }
