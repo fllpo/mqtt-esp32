@@ -23,10 +23,10 @@ class DatabaseHandler:
         try:
             self.connection = mysql.connector.connect(**self.db_config)
             self.cursor = self.connection.cursor()
-            print("Conectado ao banco de dados MySQL")
+            print("[DB_HANDLER] Conectado ao banco de dados MySQL")
 
         except mysql.connector.Error as err:
-            print(f"Erro ao conectar ao banco de dados: {err}")
+            print(f"[DB_HANDLER] Erro ao conectar ao banco de dados: {err}")
             raise
 
     def create_table(self):
@@ -52,10 +52,10 @@ class DatabaseHandler:
             """
             )
             self.connection.commit()
-            print("Tabela verificada/criada com sucesso")
+            print("[DB_HANDLER] Tabela verificada/criada com sucesso")
 
         except mysql.connector.Error as err:
-            print(f"Erro ao criar tabela: {err}")
+            print(f"[DB_HANDLER] Erro ao criar tabela: {err}")
             self.connection.rollback()
             raise
 
@@ -63,6 +63,9 @@ class DatabaseHandler:
                         umidade_atual, umidade_max, umidade_min,
                         pressao_atual, pressao_max, pressao_min,
                         orvalho_atual, orvalho_max, orvalho_min):
+        
+        if not self.connection.is_connected():
+            self.connect()
         try:
             query = f"""
             INSERT INTO {self.nome_tabela} (
@@ -84,12 +87,12 @@ class DatabaseHandler:
             self.cursor.execute(query, valor)
             self.connection.commit()
             print(
-                f"Dados inseridos com sucesso - ({datetime.now().strftime('%d/%m/%Y às %H:%M')})\n"
+                f"[DB_HANDLER] Dados inseridos com sucesso - ({datetime.now().strftime('%d/%m/%Y às %H:%M')})\n"
             )
             return True
 
         except mysql.connector.Error as err:
-            print(f"Erro ao inserir dados: {err}")
+            print(f"[DB_HANDLER] Erro ao inserir dados: {err}")
             self.connection.rollback()
             return False
 
@@ -101,11 +104,10 @@ class DatabaseHandler:
             return results
 
         except mysql.connector.Error as err:
-            print(f"Erro ao buscar dados: {err}")
+            print(f"[DB_HANDLER] Erro ao buscar dados: {err}")
             return None
         finally:
             self.close()
-
 
 
     def get_latest_data(self):
@@ -141,7 +143,7 @@ class DatabaseHandler:
                 return None
 
         except Exception as e:
-            print(f"Erro ao buscar dados: {e}")
+            print(f"[DB_HANDLER]Erro ao buscar dados: {e}")
             return None
         finally:
             self.close()
@@ -151,4 +153,4 @@ class DatabaseHandler:
             self.cursor.close()
         if self.connection:
             self.connection.close()
-        print("Conexão com o banco encerrada")
+        print("[DB_HANDLER] Conexão com o banco encerrada")

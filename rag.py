@@ -38,6 +38,7 @@ def get_resposta_rag(pergunta):
     ### Instruções:
     - Responda APENAS com o comando SQL
     - Use a sintaxe SQL padrão
+    - Garanta que a consulta retorne sempre o valor e o nome das colunas
     - Não inclua explicações ou texto adicional
     - Caso precise informar localização do dispositivo: "Cacuia, Nova Iguaçu, RJ, Brasil"
     """

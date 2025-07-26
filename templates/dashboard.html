@@ -5,106 +5,109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESP32 - Cacuia</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+
 </head>
 
 <body>
     <div class="content-wrapper">
-        <nav class="black darken-2">
+        <nav class="navbar navbar-dark bg-dark">
             <div class="container">
-                <a href="" class="brand-logo">
-                    <i class="material-icons">devices</i>ESP32 - Cacuia
+                <a class="navbar-brand" href="#">
+                    <i class="bi bi-cpu"></i> Cacuia
                 </a>
             </div>
         </nav>
 
-        <div class="container" style="padding: 5px; margin-top: 5px; border-radius: 10px;">
-            <div class="row">
+        <div class="container mt-3 p-3 rounded-3">
+            <div class="row g-3">
                 <!-- Temperatura -->
-                <div class="col s12 m4">
-                    <div class="card-panel red lighten-2 white-text">
-                        <div class="card-title">
-                            <i class="material-icons left">thermostat</i> Temperatura
-                        </div>
-                        <div style="display: flex; align-items: baseline;">
-                            <div class="valor" id="temperatura" style="margin-right: 8px;">--</div>
-                            <div class="unidade">°C</div>
+                <div class="col-md-4">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-thermometer-half"></i> Temperatura
+                            </h5>
+                            <div class="d-flex align-items-baseline">
+                                <div class="valor fs-3 me-2" id="temperatura">--</div>
+                                <div class="unidade">°C</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Umidade -->
-                <div class="col s12 m4">
-                    <div class="card-panel blue lighten-2 white-text">
-                        <div class="card-title">
-                            <i class="material-icons left">water</i> Umidade
-                        </div>
-                        <div style="display: flex; align-items: baseline;">
-                            <div class="valor" id="umidade" style="margin-right: 8px;">--</div>
-                            <div class="unidade">%</div>
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-moisture"></i> Umidade
+                            </h5>
+                            <div class="d-flex align-items-baseline">
+                                <div class="valor fs-3 me-2" id="umidade">--</div>
+                                <div class="unidade">%</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Pressão -->
-                <div class="col s12 m4">
-                    <div class="card-panel purple lighten-2 white-text">
-                        <div class="card-title">
-                            <i class="material-icons left">speed</i> Pressão
-                        </div>
-                        <div style="display: flex; align-items: baseline;">
-                            <div class="valor" id="pressao" style="margin-right: 8px;">--</div>
-                            <div class="unidade">hPa</div>
+                <div class="col-md-4">
+                    <div class="card bg-purple text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-speedometer2"></i> Pressão
+                            </h5>
+                            <div class="d-flex align-items-baseline">
+                                <div class="valor fs-3 me-2" id="pressao">--</div>
+                                <div class="unidade">hPa</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="center-align atualizacao" id="hora">
-                <i class="material-icons tiny">access_time</i>
+            <div class="text-center mt-3" id="hora">
+
                 Última atualização: --/--/---- às --:--
             </div>
         </div>
 
+        <div class="container mt-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="pergunta"
+                                placeholder="Qual foi a temperatura máxima ontem?">
+                            <button id="enviar-pergunta" class="btn btn-dark" type="button">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                    </div>
 
-        <div class="rag-section">
-            <div class="rag-header">
-                <h5 style="margin: 0;"><i class="material-icons left">question_answer</i> Faça uma pergunta sobre os
-                    dados</h5>
-            </div>
-
-            <div class="rag-body">
-                <div class="input-field">
-                    <input id="pergunta" type="text" placeholder="Ex: Qual foi a temperatura máxima ontem?">
-                    <label for="pergunta">Sua pergunta</label>
-                </div>
-
-                <button id="enviar-pergunta" class="btn black waves-effect waves-light">
-                    <i class="material-icons right">send</i> Enviar Pergunta
-                </button>
-
-                <div id="resposta">
-                    <p style="text-align: center; color: #666; margin: 30px 0;">
-                        <i class="material-icons">info</i> Faça uma pergunta acima para obter informações sobre os dados
+                    <div id="resposta" class="text-center text-muted my-4">
+                        <i class="bi bi-info-circle"></i> Faça uma pergunta acima para obter informações sobre os dados
                         coletados.
-                    </p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <footer>
+    <footer class="mt-4 py-3 text-center">
         Desenvolvido por <a href="https://github.com/fllpo/mqtt-esp32" target="_blank">Fellipe Oliveira</a>
     </footer>
-</body>
 
+    <div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 </body>
 
 </html>
