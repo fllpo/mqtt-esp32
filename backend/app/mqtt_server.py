@@ -10,7 +10,11 @@ from rag import get_resposta_rag
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(
+    import_name=__name__,
+    template_folder="../../frontend/templates",
+    static_folder="../../frontend/static",
+)
 bootstrap = Bootstrap(app)
 
 app.config['MQTT_BROKER_URL'] = os.getenv("HOST")
