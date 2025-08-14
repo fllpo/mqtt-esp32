@@ -19,7 +19,7 @@ function fetchData() {
         });
 }
 
-let isRequestPending = false;
+let aguardandoResposta = false;
 
 function showToastBootstrap(message, type = 'danger') {
     const alert = $(`
@@ -37,7 +37,7 @@ function showToastBootstrap(message, type = 'danger') {
 }
 
 $('#enviar-pergunta').click(function () {
-    if (isRequestPending) {
+    if (aguardandoResposta) {
         showToastBootstrap('Aguarde a resposta atual', 'warning');
         return;
     }
@@ -48,7 +48,7 @@ $('#enviar-pergunta').click(function () {
         return;
     }
 
-    isRequestPending = true;
+    aguardandoResposta = true;
     $('#resposta').html(`
         <div class="text-center my-3">
             <div class="spinner-border text-primary" role="status"/>
@@ -99,7 +99,7 @@ $('#enviar-pergunta').click(function () {
             `);
         })
         .finally(() => {
-            isRequestPending = false;
+            aguardandoResposta = false;
         });
 });
 

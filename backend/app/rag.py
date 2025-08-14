@@ -2,10 +2,12 @@ from haystack import Pipeline
 from haystack.components.builders.prompt_builder import PromptBuilder
 from haystack_integrations.components.generators.ollama import OllamaGenerator
 from database_handler import DatabaseHandler
+
 db_handler = DatabaseHandler()
 
+
 def get_resposta_rag(pergunta):
-    
+
     schema = """
         TABLE clima (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -38,7 +40,6 @@ def get_resposta_rag(pergunta):
     ### Instruções:
     - Responda APENAS com o comando SQL
     - Use a sintaxe SQL padrão
-    - Garanta que a consulta retorne sempre o valor e o nome das colunas
     - Não inclua explicações ou texto adicional
     - Caso precise informar localização do dispositivo: "Cacuia, Nova Iguaçu, RJ, Brasil"
     """
@@ -64,42 +65,37 @@ def get_resposta_rag(pergunta):
     - Dê preferencia a respostas diretas, curtas e claras
     - Não inclua o termo "banco de dados", "tabelas" ou "colunas" na resposta
     
-
     """
 
-
     pipe_sql = Pipeline()
-    pipe_sql.add_component("prompt_sql",
-                        PromptBuilder(
-                            template=template_sql,
-                                required_variables=["query", 
-                                                    "schema"]))
-    pipe_sql.add_component("llm_sql", OllamaGenerator(model="mistral",
-                                            url="http://localhost:11434"))
+    pipe_sql.add_component(
+        "prompt_sql",
+        PromptBuilder(template=template_sql, required_variables=["query", "schema"]),
+    )
+    pipe_sql.add_component(
+        "llm_sql", OllamaGenerator(model="mistral", url="http://localhost:11434")
+    )
     pipe_sql.connect("prompt_sql", "llm_sql")
 
     pipe_tratamento = Pipeline()
-    pipe_tratamento.add_component("prompt_tratamento",
-                                PromptBuilder(
-                                    template=template_tratamento,
-                                    required_variables=["resposta_db_rag", 
-                                                        "query"]))
-    pipe_tratamento.add_component("llm_tratamento", OllamaGenerator(model="mistral",
-                                            url="http://localhost:11434"))
-    pipe_tratamento.connect("prompt_tratamento", "llm_tratamento")   
-    
+    pipe_tratamento.add_component(
+        "prompt_tratamento",
+        PromptBuilder(
+            template=template_tratamento,
+            required_variables=["resposta_db_rag", "query"],
+        ),
+    )
+    pipe_tratamento.add_component(
+        "llm_tratamento", OllamaGenerator(model="mistral", url="http://localhost:11434")
+    )
+    pipe_tratamento.connect("prompt_tratamento", "llm_tratamento")
+
     print(f"Pergunta: {pergunta}")
 
-    resposta_sql = pipe_sql.run({
-        "prompt_sql": {
-            "query": pergunta,
-            "schema": schema 
-        }
-    })
+    resposta_sql = pipe_sql.run({"prompt_sql": {"query": pergunta, "schema": schema}})
 
     sql = resposta_sql["llm_sql"]["replies"][0].strip()
     print(f"SQL: {sql}")
-
 
     resposta_db_rag = db_handler.get_rag_data(sql)
     print(f"Resposta do banco: {resposta_db_rag}")
@@ -107,14 +103,9 @@ def get_resposta_rag(pergunta):
     if resposta_db_rag is None:
         return "Desculpe, não consegui encontrar uma resposta para sua pergunta."
 
-    resposta_final = pipe_tratamento.run({
-        "prompt_tratamento": {
-            "resposta_db_rag": resposta_db_rag,
-            "query": pergunta
-        }  
-    })
+    resposta_final = pipe_tratamento.run(
+        {"prompt_tratamento": {"resposta_db_rag": resposta_db_rag, "query": pergunta}}
+    )
     print(f"Resposta Final: {resposta_final['llm_tratamento']['replies'][0]}")
-    
-    return resposta_final['llm_tratamento']['replies'][0]
 
-
+    return resposta_final["llm_tratamento"]["replies"][0]

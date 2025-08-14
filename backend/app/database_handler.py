@@ -1,156 +1,160 @@
-import mysql.connector
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, Column, Integer, Float, DateTime, text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 load_dotenv()
 
+Base = declarative_base()
+
+
+class Clima(Base):
+    __tablename__ = "clima"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    timestamp = Column(DateTime, default=datetime.now)
+    temperatura_atual = Column(Float)
+    temperatura_max = Column(Float)
+    temperatura_min = Column(Float)
+    umidade_atual = Column(Float)
+    umidade_max = Column(Float)
+    umidade_min = Column(Float)
+    pressao_atual = Column(Float)
+    pressao_max = Column(Float)
+    pressao_min = Column(Float)
+    orvalho_atual = Column(Float)
+    orvalho_max = Column(Float)
+    orvalho_min = Column(Float)
+
+
 class DatabaseHandler:
     def __init__(self):
-        self.connection = None
-        self.cursor = None
-        self.db_config = {
-            'host': os.getenv("DB_HOST", "localhost"),
-            'user': os.getenv("DB_USER"),
-            'password': os.getenv("DB_PASSWORD"),
-            'database': os.getenv("DB_NAME")
-        }
-        self.nome_tabela = "clima"
-        self.connect()
-        self.create_table()
+        db_host = os.getenv("DB_HOST", "localhost")
+        db_user = os.getenv("DB_USER")
+        db_password = os.getenv("DB_PASSWORD")
+        db_name = os.getenv("DB_NAME")
 
-    def connect(self):
+        self.engine = create_engine(
+            f"mysql+mysqlconnector://{db_user}:{db_password}@{db_host}/{db_name}"
+        )
+        self.Session = sessionmaker(bind=self.engine)
+        self.create_tables()
+        print("[DB_HANDLER] Configuração do banco de dados concluída")
+
+    def create_tables(self):
         try:
-            self.connection = mysql.connector.connect(**self.db_config)
-            self.cursor = self.connection.cursor()
-            print("[DB_HANDLER] Conectado ao banco de dados MySQL")
-
-        except mysql.connector.Error as err:
-            print(f"[DB_HANDLER] Erro ao conectar ao banco de dados: {err}")
+            Base.metadata.create_all(self.engine)
+            print("[DB_HANDLER] Tabelas verificadas/criadas com sucesso")
+        except Exception as err:
+            print(f"[DB_HANDLER] Erro ao criar tabelas: {err}")
             raise
 
-    def create_table(self):
+    def insert_reading(
+        self,
+        temperatura_atual,
+        temperatura_max,
+        temperatura_min,
+        umidade_atual,
+        umidade_max,
+        umidade_min,
+        pressao_atual,
+        pressao_max,
+        pressao_min,
+        orvalho_atual,
+        orvalho_max,
+        orvalho_min,
+    ):
+
+        valores = [
+            temperatura_atual,
+            temperatura_max,
+            temperatura_min,
+            umidade_atual,
+            umidade_max,
+            umidade_min,
+            pressao_atual,
+            pressao_max,
+            pressao_min,
+            orvalho_atual,
+            orvalho_max,
+            orvalho_min,
+        ]
+
+        if any(valor < 0 for valor in valores):
+            print(
+                "[DB_HANDLER] Valores negativos não são permitidos. Verifique o ESP32."
+            )
+            return False
+
+        session = self.Session()
         try:
-            self.cursor.execute(
-                f"""
-            CREATE TABLE IF NOT EXISTS {self.nome_tabela} (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                temperatura_atual FLOAT,
-                temperatura_max FLOAT,
-                temperatura_min FLOAT,
-                umidade_atual FLOAT,
-                umidade_max FLOAT,
-                umidade_min FLOAT,
-                pressao_atual FLOAT,
-                pressao_max FLOAT,
-                pressao_min FLOAT,
-                orvalho_atual FLOAT,
-                orvalho_max FLOAT,
-                orvalho_min FLOAT
-            )
-            """
-            )
-            self.connection.commit()
-            print("[DB_HANDLER] Tabela verificada/criada com sucesso")
-
-        except mysql.connector.Error as err:
-            print(f"[DB_HANDLER] Erro ao criar tabela: {err}")
-            self.connection.rollback()
-            raise
-
-    def insert_reading(self, temperatura_atual, temperatura_max, temperatura_min, 
-                        umidade_atual, umidade_max, umidade_min,
-                        pressao_atual, pressao_max, pressao_min,
-                        orvalho_atual, orvalho_max, orvalho_min):
-        
-        if not self.connection.is_connected():
-            self.connect()
-        try:
-            query = f"""
-            INSERT INTO {self.nome_tabela} (
-                temperatura_atual, temperatura_max, temperatura_min, 
-                umidade_atual, umidade_max, umidade_min,
-                pressao_atual, pressao_max, pressao_min, 
-                orvalho_atual, orvalho_max, orvalho_min
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """
-
-            valor = (
-                temperatura_atual, temperatura_max, temperatura_min,
-                umidade_atual, umidade_max, umidade_min,
-                pressao_atual, pressao_max, pressao_min,
-                orvalho_atual, orvalho_max, orvalho_min
+            novo_registro = Clima(
+                temperatura_atual=temperatura_atual,
+                temperatura_max=temperatura_max,
+                temperatura_min=temperatura_min,
+                umidade_atual=umidade_atual,
+                umidade_max=umidade_max,
+                umidade_min=umidade_min,
+                pressao_atual=pressao_atual,
+                pressao_max=pressao_max,
+                pressao_min=pressao_min,
+                orvalho_atual=orvalho_atual,
+                orvalho_max=orvalho_max,
+                orvalho_min=orvalho_min,
             )
 
-            self.cursor.execute(query, valor)
-            self.connection.commit()
+            session.add(novo_registro)
+            session.commit()
             print(
                 f"[DB_HANDLER] Dados inseridos com sucesso - ({datetime.now().strftime('%d/%m/%Y às %H:%M')})\n"
             )
             return True
 
-        except mysql.connector.Error as err:
+        except Exception as err:
+            session.rollback()
             print(f"[DB_HANDLER] Erro ao inserir dados: {err}")
-            self.connection.rollback()
             return False
+        finally:
+            session.close()
 
     def get_rag_data(self, query):
+        session = self.Session()
         try:
-            self.connect() 
-            self.cursor.execute(query)
-            results = self.cursor.fetchall()
-            return results
-
-        except mysql.connector.Error as err:
+            result = session.execute(text(query))
+            return result.fetchall()
+        except Exception as err:
             print(f"[DB_HANDLER] Erro ao buscar dados: {err}")
             return None
         finally:
-            self.close()
-
+            session.close()
 
     def get_latest_data(self):
+        session = self.Session()
         try:
-            self.connect() 
-            
-            query = f"""
-                SELECT * FROM {self.nome_tabela}
-                ORDER BY timestamp DESC
-                LIMIT 1
-                """
+            latest = session.query(Clima).order_by(Clima.timestamp.desc()).first()
 
-            self.cursor.execute(query)
-            result = self.cursor.fetchone()
-
-            if result:
+            if latest:
                 return {
-                    "timestamp": result[1],
-                    "temperatura_atual": result[2],
-                    "temperatura_max": result[3],
-                    "temperatura_min": result[4],
-                    "umidade_atual": result[5],
-                    "umidade_max": result[6],
-                    "umidade_min": result[7],
-                    "pressao_atual": result[8],
-                    "pressao_max": result[9],
-                    "pressao_min": result[10],
-                    "orvalho_atual": result[11],
-                    "orvalho_max": result[12],
-                    "orvalho_min": result[13],
+                    "timestamp": latest.timestamp,
+                    "temperatura_atual": latest.temperatura_atual,
+                    "temperatura_max": latest.temperatura_max,
+                    "temperatura_min": latest.temperatura_min,
+                    "umidade_atual": latest.umidade_atual,
+                    "umidade_max": latest.umidade_max,
+                    "umidade_min": latest.umidade_min,
+                    "pressao_atual": latest.pressao_atual,
+                    "pressao_max": latest.pressao_max,
+                    "pressao_min": latest.pressao_min,
+                    "orvalho_atual": latest.orvalho_atual,
+                    "orvalho_max": latest.orvalho_max,
+                    "orvalho_min": latest.orvalho_min,
                 }
-            else:
-                return None
+            return None
 
         except Exception as e:
-            print(f"[DB_HANDLER]Erro ao buscar dados: {e}")
+            print(f"[DB_HANDLER] Erro ao buscar dados: {e}")
             return None
         finally:
-            self.close()
-
-    def close(self):
-        if self.cursor:
-            self.cursor.close()
-        if self.connection:
-            self.connection.close()
-        print("[DB_HANDLER] Conexão com o banco encerrada")
+            session.close()
