@@ -43,6 +43,7 @@ graph LR
     D -->|Retorna dados| F
     F -->|Resposta formatada| E
 ```
+<!-- 
 
 ## Como usar
 
@@ -75,5 +76,5 @@ pip install -r requirements.txt  # Instala dependências Python
 ```py
 python mqtt_server.py #Inicia o servidor Flask
 ```
-
 Acesse http://localhost:5000
+-->
