@@ -10,6 +10,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
 
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 </head>
 
 <body>
@@ -28,10 +33,11 @@
             <div class="row g-3">
                 <!-- Temperatura -->
                 <div class="col-md-4">
-                    <div class="card bg-danger text-white">
+                    <div class="card bg-danger text-white card-grafico" data-tipo="temperatura"
+                        style="cursor: pointer;">
                         <div class="card-body">
                             <h5 class="card-title">
-                                <i class="bi bi-thermometer-half"></i> Temperatura
+                                <i class="bi bi-thermometer-half"></i>Temperatura
                             </h5>
                             <div class="d-flex align-items-baseline">
                                 <div class="valor fs-3 me-2" id="temperatura">--</div>
@@ -39,11 +45,15 @@
                             </div>
                         </div>
                     </div>
+                    <div class="grafico-container" style="display:none;">
+                        <canvas class="graficoHistorico" height="100"></canvas>
+                    </div>
                 </div>
+
 
                 <!-- Umidade -->
                 <div class="col-md-4">
-                    <div class="card bg-primary text-white">
+                    <div class="card bg-primary text-white card-grafico" data-tipo="umidade" style="cursor: pointer;">
                         <div class="card-body">
                             <h5 class="card-title">
                                 <i class="bi bi-moisture"></i> Umidade
@@ -54,11 +64,14 @@
                             </div>
                         </div>
                     </div>
+                    <div class="grafico-container" style="display:none;">
+                        <canvas class="graficoHistorico" height="100"></canvas>
+                    </div>
                 </div>
 
                 <!-- Pressão -->
                 <div class="col-md-4">
-                    <div class="card bg-purple text-white">
+                    <div class="card bg-purple text-white card-grafico" data-tipo="pressao" style="cursor: pointer;">
                         <div class="card-body">
                             <h5 class="card-title">
                                 <i class="bi bi-speedometer2"></i> Pressão
@@ -69,6 +82,9 @@
                             </div>
                         </div>
                     </div>
+                    <div class="grafico-container" style="display:none;">
+                        <canvas class="graficoHistorico" height="100"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -78,6 +94,22 @@
             Última atualização: --/--/---- às --:--
         </div>
     </div>
+
+    <!-- Modal do Gráfico -->
+    <div class="modal fade" id="graficoModal" tabindex="-1" aria-labelledby="graficoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="graficoModalLabel">Histórico</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="graficoHistorico" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Pergunta -->
     <div class="container">
         <div class="card">
@@ -105,10 +137,6 @@
     </footer>
 
     <div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 
 </body>
 

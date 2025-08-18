@@ -5,7 +5,7 @@ from flask import Flask, render_template, jsonify, request
 from flask_bootstrap import Bootstrap
 from flask_mqtt import Mqtt
 from dotenv import load_dotenv
-from database_handler import DatabaseHandler
+from database_handler import DatabaseHandler, Clima
 from rag import get_resposta_rag
 
 load_dotenv()
@@ -61,6 +61,36 @@ def api_rag():
     pergunta = data.get("pergunta", "")
     resposta = get_resposta_rag(pergunta)
     return jsonify({"resposta": resposta})
+
+
+@app.route("/api/historico/<tipo>")
+def historico(tipo):
+    campos = {
+        "temperatura": "temperatura_atual",
+        "umidade": "umidade_atual",
+        "pressao": "pressao_atual",
+    }
+    campo = campos.get(tipo)
+    if not campo:
+        return jsonify([])
+
+    session = db_handler.Session()
+    try:
+        resultados = (
+            session.query(Clima.timestamp, getattr(Clima, campo))
+            .order_by(Clima.timestamp.desc())
+            .limit(13)
+            .all()
+        )
+
+        resultados = resultados[::-1]
+        dados = [
+            {"hora": str(int(r.timestamp.strftime("%H"))) + "h", "valor": r[1]}
+            for r in resultados
+        ]
+        return jsonify(dados)
+    finally:
+        session.close()
 
 
 @mqtt.on_connect()
