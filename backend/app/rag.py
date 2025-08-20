@@ -41,7 +41,7 @@ def get_resposta_rag(pergunta):
     - Responda APENAS com o comando SQL
     - Use a sintaxe SQL padrão
     - Não inclua explicações ou texto adicional
-    - Caso precise informar localização do dispositivo: "Cacuia, Nova Iguaçu, RJ, Brasil"
+    - Estamos no ano de 2025
     """
 
     template_tratamento = """
@@ -64,31 +64,35 @@ def get_resposta_rag(pergunta):
     - Não inclua SQL ou código
     - Dê preferencia a respostas diretas, curtas e claras
     - Não inclua o termo "banco de dados", "tabelas" ou "colunas" na resposta
-    
+    - Caso precise informar localização do dispositivo: "Cacuia, Nova Iguaçu, RJ, Brasil"
     """
 
     pipe_sql = Pipeline()
     pipe_sql.add_component(
-        "prompt_sql",
-        PromptBuilder(template=template_sql, required_variables=["query", "schema"]),
+        name="prompt_sql",
+        instance=PromptBuilder(
+            template=template_sql, required_variables=["query", "schema"]
+        ),
     )
     pipe_sql.add_component(
-        "llm_sql", OllamaGenerator(model="mistral", url="http://localhost:11434")
+        name="llm_sql",
+        instance=OllamaGenerator(model="mistral", url="http://localhost:11434"),
     )
-    pipe_sql.connect("prompt_sql", "llm_sql")
+    pipe_sql.connect(sender="prompt_sql", receiver="llm_sql")
 
     pipe_tratamento = Pipeline()
     pipe_tratamento.add_component(
-        "prompt_tratamento",
-        PromptBuilder(
+        name="prompt_tratamento",
+        instance=PromptBuilder(
             template=template_tratamento,
             required_variables=["resposta_db_rag", "query"],
         ),
     )
     pipe_tratamento.add_component(
-        "llm_tratamento", OllamaGenerator(model="mistral", url="http://localhost:11434")
+        name="llm_tratamento",
+        instance=OllamaGenerator(model="mistral", url="http://localhost:11434"),
     )
-    pipe_tratamento.connect("prompt_tratamento", "llm_tratamento")
+    pipe_tratamento.connect(sender="prompt_tratamento", receiver="llm_tratamento")
 
     print(f"Pergunta: {pergunta}")
 
@@ -96,6 +100,13 @@ def get_resposta_rag(pergunta):
 
     sql = resposta_sql["llm_sql"]["replies"][0].strip()
     print(f"SQL: {sql}")
+
+    if sql.startswith("SELECT") is False:
+        return "Desculpe, não posso executar comandos que não sejam SELECT."
+    if "insert" in sql or "INSERT" in sql or "update" in sql or "UPDATE" in sql:
+        return "Desculpe, não posso executar comandos de inserção ou atualização."
+    if "delete" in sql or "DELETE" in sql or "drop" in sql or "DROP" in sql:
+        return "Desculpe, não posso executar comandos de exclusão ou remoção."
 
     resposta_db_rag = db_handler.get_rag_data(sql)
     print(f"Resposta do banco: {resposta_db_rag}")
