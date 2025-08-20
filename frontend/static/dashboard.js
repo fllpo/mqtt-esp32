@@ -49,6 +49,7 @@ $('#enviar-pergunta').click(function () {
     }
 
     aguardandoResposta = true;
+
     $('#resposta').html(`
         <div class="text-center my-3">
             <div class="spinner-border text-primary" role="status"/>

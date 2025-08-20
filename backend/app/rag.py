@@ -42,6 +42,7 @@ def get_resposta_rag(pergunta):
     - Use a sintaxe SQL padrão
     - Não inclua explicações ou texto adicional
     - Caso precise informar localização do dispositivo: "Cacuia, Nova Iguaçu, RJ, Brasil"
+    - Estamos no ano de 2025
     """
 
     template_tratamento = """
@@ -96,6 +97,13 @@ def get_resposta_rag(pergunta):
 
     sql = resposta_sql["llm_sql"]["replies"][0].strip()
     print(f"SQL: {sql}")
+
+    if sql.startswith("SELECT") is False:
+        return "Desculpe, não posso executar comandos que não sejam SELECT."
+    if "insert" in sql or "INSERT" in sql or "update" in sql or "UPDATE" in sql:
+        return "Desculpe, não posso executar comandos de inserção ou atualização."
+    if "delete" in sql or "DELETE" in sql or "drop" in sql or "DROP" in sql:
+        return "Desculpe, não posso executar comandos de exclusão ou remoção."
 
     resposta_db_rag = db_handler.get_rag_data(sql)
     print(f"Resposta do banco: {resposta_db_rag}")

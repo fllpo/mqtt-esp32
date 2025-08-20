@@ -55,6 +55,7 @@ def dashboard():
 def api_dados():
     return jsonify(db_handler.get_latest_data())
 
+
 @app.route("/api/rag", methods=["POST"])
 def api_rag():
     data = request.get_json()
