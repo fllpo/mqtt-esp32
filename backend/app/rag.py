@@ -41,6 +41,10 @@ def get_resposta_rag(pergunta):
     - Responda APENAS com o comando SQL
     - Use a sintaxe SQL padrão
     - Não inclua explicações ou texto adicional
+<<<<<<< HEAD
+=======
+    - Caso precise informar localização do dispositivo: "Cacuia, Nova Iguaçu, RJ, Brasil"
+>>>>>>> 2df46f4ef783e6f8b70994ca628194e0d84eb14d
     - Estamos no ano de 2025
     """
 
