@@ -2,11 +2,20 @@ from haystack import Pipeline
 from haystack.components.builders.prompt_builder import PromptBuilder
 from haystack_integrations.components.generators.ollama import OllamaGenerator
 from database_handler import DatabaseHandler
+from rag_templates import TEMPLATES_SQL, TEMPLATES_TRATAMENTO
+import re
 
 db_handler = DatabaseHandler()
 
 
-def get_resposta_rag(pergunta):
+def extrair_sql(resposta):
+    match = re.search(r"```SQL\s*(.*?)\s*```", resposta, re.DOTALL | re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
+    return resposta.strip()
+
+
+def get_resposta_rag(pergunta, modo_sql, modo_tratamento):
 
     schema = """
         TABLE clima (
@@ -26,46 +35,8 @@ def get_resposta_rag(pergunta):
             orvalho_min FLOAT
         )
     """
-
-    template_sql = """
-    Você é um especialista em SQL. Com base no esquema abaixo, gere uma consulta SQL válida para responder à pergunta.
-    Use apenas as tabelas e colunas fornecidas.
-
-    ### Esquema do Banco de Dados:
-    {{ schema }}
-
-    ### Pergunta:
-    {{ query }}
-
-    ### Instruções:
-    - Responda APENAS com o comando SQL
-    - Use a sintaxe SQL padrão
-    - Não inclua explicações ou texto adicional
-    - Estamos no ano de 2025
-    """
-
-    template_tratamento = """
-    Você recebeu uma resposta do banco de dados. Sua tarefa é:
-    1. Extrair os dados relevantes
-    2. Formatá-los de maneira clara e concisa
-    3. Responder a pergunta original de forma direta
-
-    ### Resposta Bruta do Banco:
-    {{ resposta_db_rag }}
-
-    ### Pergunta Original:
-    {{ query }}
-
-    ### Formato de Resposta:
-    - Use frases completas
-    - Seja específico com valores e datas
-    - Destaque valores importantes
-    - Evite jargões técnicos
-    - Não inclua SQL ou código
-    - Dê preferencia a respostas diretas, curtas e claras
-    - Não inclua o termo "banco de dados", "tabelas" ou "colunas" na resposta
-    - Caso precise informar localização do dispositivo: "Cacuia, Nova Iguaçu, RJ, Brasil"
-    """
+    template_sql = TEMPLATES_SQL[modo_sql]
+    template_tratamento = TEMPLATES_TRATAMENTO[modo_tratamento]
 
     pipe_sql = Pipeline()
     pipe_sql.add_component(
@@ -98,9 +69,13 @@ def get_resposta_rag(pergunta):
 
     resposta_sql = pipe_sql.run({"prompt_sql": {"query": pergunta, "schema": schema}})
 
-    sql = resposta_sql["llm_sql"]["replies"][0].strip()
-    print(f"SQL: {sql}")
+    print(
+        f"Resposta SQL bruta: {resposta_sql["llm_sql"]["replies"][0].strip()}",
+    )
 
+    sql = extrair_sql(resposta=resposta_sql["llm_sql"]["replies"][0].strip())
+
+    print(f"SQL: {sql}")
     if sql.startswith("SELECT") is False:
         return "Desculpe, não posso executar comandos que não sejam SELECT."
     if "insert" in sql or "INSERT" in sql or "update" in sql or "UPDATE" in sql:

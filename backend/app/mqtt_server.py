@@ -60,7 +60,9 @@ def api_dados():
 def api_rag():
     data = request.get_json()
     pergunta = data.get("pergunta", "")
-    resposta = get_resposta_rag(pergunta)
+    resposta = get_resposta_rag(
+        pergunta=pergunta, modo_sql="one_shot", modo_tratamento="one_shot"
+    )
     return jsonify({"resposta": resposta})
 
 
