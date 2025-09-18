@@ -7,7 +7,6 @@ import re
 
 db_handler = DatabaseHandler()
 
-
 def extrair_sql(resposta):
     match = re.search(r"```SQL\s*(.*?)\s*```", resposta, re.DOTALL | re.IGNORECASE)
     if match:
@@ -15,7 +14,7 @@ def extrair_sql(resposta):
     return resposta.strip()
 
 
-def get_resposta_rag(pergunta, modo_sql, modo_tratamento):
+def get_resposta_rag(pergunta, modo_sql, modo_tratamento, modelo):
 
     schema = """
         TABLE clima (
@@ -47,7 +46,7 @@ def get_resposta_rag(pergunta, modo_sql, modo_tratamento):
     )
     pipe_sql.add_component(
         name="llm_sql",
-        instance=OllamaGenerator(model="mistral", url="http://localhost:11434"),
+        instance=OllamaGenerator(model=modelo, url="http://localhost:11434"),
     )
     pipe_sql.connect(sender="prompt_sql", receiver="llm_sql")
 
@@ -61,30 +60,32 @@ def get_resposta_rag(pergunta, modo_sql, modo_tratamento):
     )
     pipe_tratamento.add_component(
         name="llm_tratamento",
-        instance=OllamaGenerator(model="mistral", url="http://localhost:11434"),
+        instance=OllamaGenerator(model=modelo, url="http://localhost:11434"),
     )
     pipe_tratamento.connect(sender="prompt_tratamento", receiver="llm_tratamento")
 
-    print(f"Pergunta: {pergunta}")
-
     resposta_sql = pipe_sql.run({"prompt_sql": {"query": pergunta, "schema": schema}})
 
-    print(
-        f"Resposta SQL bruta: {resposta_sql["llm_sql"]["replies"][0].strip()}",
-    )
+    sql_string = extrair_sql(resposta=resposta_sql["llm_sql"]["replies"][0].strip())
 
-    sql = extrair_sql(resposta=resposta_sql["llm_sql"]["replies"][0].strip())
-
-    print(f"SQL: {sql}")
-    if sql.startswith("SELECT") is False:
+    if sql_string.startswith("SELECT") is False:
         return "Desculpe, não posso executar comandos que não sejam SELECT."
-    if "insert" in sql or "INSERT" in sql or "update" in sql or "UPDATE" in sql:
+    if (
+        "insert" in sql_string
+        or "INSERT" in sql_string
+        or "update" in sql_string
+        or "UPDATE" in sql_string
+    ):
         return "Desculpe, não posso executar comandos de inserção ou atualização."
-    if "delete" in sql or "DELETE" in sql or "drop" in sql or "DROP" in sql:
+    if (
+        "delete" in sql_string
+        or "DELETE" in sql_string
+        or "drop" in sql_string
+        or "DROP" in sql_string
+    ):
         return "Desculpe, não posso executar comandos de exclusão ou remoção."
 
-    resposta_db_rag = db_handler.get_rag_data(sql)
-    print(f"Resposta do banco: {resposta_db_rag}")
+    resposta_db_rag = db_handler.get_rag_data(sql_string)
 
     if resposta_db_rag is None:
         return "Desculpe, não consegui encontrar uma resposta para sua pergunta."
@@ -92,6 +93,5 @@ def get_resposta_rag(pergunta, modo_sql, modo_tratamento):
     resposta_final = pipe_tratamento.run(
         {"prompt_tratamento": {"resposta_db_rag": resposta_db_rag, "query": pergunta}}
     )
-    print(f"Resposta Final: {resposta_final['llm_tratamento']['replies'][0]}")
 
-    return resposta_final["llm_tratamento"]["replies"][0]
+    return sql_string, resposta_final["llm_tratamento"]["replies"][0]

@@ -61,8 +61,12 @@ def api_rag():
     data = request.get_json()
     pergunta = data.get("pergunta", "")
     resposta = get_resposta_rag(
-        pergunta=pergunta, modo_sql="one_shot", modo_tratamento="one_shot"
-    )
+        pergunta=pergunta,
+        modo_sql="one_shot",
+        modo_tratamento="one_shot",
+        modelo="mistral",
+    )[1]
+
     return jsonify({"resposta": resposta})
 
 

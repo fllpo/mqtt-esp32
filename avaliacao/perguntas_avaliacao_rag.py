@@ -1,4 +1,11 @@
+import sys
+import os
+
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend", "app"))
+)
 from rag import get_resposta_rag
+
 
 perguntas = [
     # Fáceis
@@ -24,7 +31,8 @@ perguntas = [
 
 def testar_perguntas_combinacoes():
     modos = ["zero_shot", "one_shot", "chain_of_thought"]
-    
+    modelos = ["mistral"]
+
     timestamp = __import__("datetime").datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     timestamp_file = timestamp.replace("/", "_").replace(" ", "_").replace(":", "_")
 
@@ -33,17 +41,23 @@ def testar_perguntas_combinacoes():
         file.write(f"\n\n[Teste realizado em: {timestamp}]\n\n")
         for idx, pergunta in enumerate(perguntas, start=1):
             file.write(f"\n{'='*100}\nPergunta {idx}: {pergunta}\n{'='*100}\n")
-            for modo_sql in modos:
-                for modo_tratamento in modos:
-                    file.write(
-                        f"\n--- SQL: {modo_sql} | Tratamento: {modo_tratamento} ---\n"
-                    )
-                    try:
-                        resposta = get_resposta_rag(pergunta, modo_sql, modo_tratamento)
-                    except Exception as e:
-                        resposta = f"Erro: {e}"
-                    file.write(f"Resposta: {resposta}\n")
+            for modelo in modelos:
+                file.write(f"\n##### MODELO: {modelo} #####\n")
+                for modo_sql in modos:
+                    for modo_tratamento in modos:
+                        file.write(
+                            f"\n--- SQL: {modo_sql} | Tratamento: {modo_tratamento} ---\n"
+                        )
+                        try:
+                            resposta = get_resposta_rag(
+                                pergunta, modo_sql, modo_tratamento, modelo
+                            )
+                        except Exception as e:
+                            resposta = (f"Erro: {e}", "")
+                        file.write(f"SQL: {resposta[0]}\n")
+                        file.write(f"SAÍDA DO MODELO: {resposta[1]}\n")
             file.write("-" * 100 + "\n")
+
 
 if __name__ == "__main__":
     testar_perguntas_combinacoes()
