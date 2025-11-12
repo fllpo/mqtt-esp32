@@ -30,8 +30,6 @@ Este projeto está sendo desenvolvido como Trabalho de Conclusão de Curso e con
 - **Processamento**: RAG (Haystack + Ollama/Mistral)
 - **Frontend**: HTML/CSS/JavaScript + Bootstrap
 
-## Diagrama do sistema
-
 <!-- 
 
 ## Como usar
