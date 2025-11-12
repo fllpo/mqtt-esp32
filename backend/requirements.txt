@@ -1,0 +1,9 @@
+Flask==3.1.2
+Flask-Bootstrap==3.3.7.1
+Flask-MQTT==1.2.1
+mysql-connector-python==9.4.0
+python-dotenv==1.1.1
+haystack==0.42
+haystack-ai==2.18.0
+ollama-haystack==5.1.0
+SQLAlchemy==2.0.43

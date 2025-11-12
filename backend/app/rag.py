@@ -4,6 +4,8 @@ from haystack_integrations.components.generators.ollama import OllamaGenerator
 from database_handler import DatabaseHandler
 from rag_templates import TEMPLATES_SQL, TEMPLATES_TRATAMENTO
 import re
+import requests
+import sys
 
 db_handler = DatabaseHandler()
 
@@ -14,7 +16,31 @@ def extrair_sql(resposta):
     return resposta.strip()
 
 
+def verificar_modelo(modelo, url="http://localhost:11434"):
+    try:
+        response = requests.get(f"{url}/api/tags", timeout=3)
+        response.raise_for_status()
+        modelos_instalados = [m["name"] for m in response.json().get("models", [])]
+
+        if modelo not in modelos_instalados:
+            print(f"Erro: o modelo '{modelo}' não está instalado no Ollama.")
+            print(
+                "Modelos disponíveis:",
+                ", ".join(modelos_instalados) or "nenhum modelo encontrado",
+            )
+            sys.exit(1)  # encerra o programa imediatamente
+
+    except requests.exceptions.ConnectionError:
+        print("Erro: não foi possível conectar ao Ollama em http://localhost:11434")
+        print("Verifique se o Ollama está rodando (`ollama serve` ou o serviço ativo).")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Erro ao verificar modelo: {e}")
+        sys.exit(1)
+
+
 def get_resposta_rag(pergunta, modo_sql, modo_tratamento, modelo):
+    # verificar_modelo(modelo)
 
     schema = """
         TABLE clima (
@@ -69,21 +95,7 @@ def get_resposta_rag(pergunta, modo_sql, modo_tratamento, modelo):
     sql_string = extrair_sql(resposta=resposta_sql["llm_sql"]["replies"][0].strip())
 
     if sql_string.startswith("SELECT") is False:
-        return "Desculpe, não posso executar comandos que não sejam SELECT."
-    if (
-        "insert" in sql_string
-        or "INSERT" in sql_string
-        or "update" in sql_string
-        or "UPDATE" in sql_string
-    ):
-        return "Desculpe, não posso executar comandos de inserção ou atualização."
-    if (
-        "delete" in sql_string
-        or "DELETE" in sql_string
-        or "drop" in sql_string
-        or "DROP" in sql_string
-    ):
-        return "Desculpe, não posso executar comandos de exclusão ou remoção."
+        return "Desculpe, não posso executar esse comando."
 
     resposta_db_rag = db_handler.get_rag_data(sql_string)
 

@@ -28,10 +28,10 @@ perguntas = [
     "Resuma os dados climáticos registrados até agora.",
 ]
 
-
 def testar_perguntas_combinacoes():
     modos = ["zero_shot", "one_shot", "chain_of_thought"]
-    modelos = ["mistral"]
+    # modelos = ["mistral"]
+    modelos = sys.argv[1:]
 
     timestamp = __import__("datetime").datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     timestamp_file = timestamp.replace("/", "_").replace(" ", "_").replace(":", "_")
@@ -39,13 +39,18 @@ def testar_perguntas_combinacoes():
     filename = f"log/resposta_avaliacao_rag_{timestamp_file}.txt"
     with open(filename, "a", encoding="utf-8") as file:
         file.write(f"\n\n[Teste realizado em: {timestamp}]\n\n")
+        print(f"\n\n[Teste realizado em: {timestamp}]\n\n")
         for idx, pergunta in enumerate(perguntas, start=1):
             file.write(f"\n{'='*100}\nPergunta {idx}: {pergunta}\n{'='*100}\n")
+            print(f"\n{'='*100}\nPergunta {idx}: {pergunta}\n{'='*100}\n")
             for modelo in modelos:
                 file.write(f"\n##### MODELO: {modelo} #####\n")
                 for modo_sql in modos:
                     for modo_tratamento in modos:
                         file.write(
+                            f"\n--- SQL: {modo_sql} | Tratamento: {modo_tratamento} ---\n"
+                        )
+                        print(
                             f"\n--- SQL: {modo_sql} | Tratamento: {modo_tratamento} ---\n"
                         )
                         try:
@@ -55,7 +60,9 @@ def testar_perguntas_combinacoes():
                         except Exception as e:
                             resposta = (f"Erro: {e}", "")
                         file.write(f"SQL: {resposta[0]}\n")
+                        print(f"SQL: {resposta[0]}\n")
                         file.write(f"SAÍDA DO MODELO: {resposta[1]}\n")
+                        print(f"SAÍDA DO MODELO: {resposta[1]}\n")
             file.write("-" * 100 + "\n")
 
 

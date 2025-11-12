@@ -1,0 +1,11 @@
+HOST = "host.s1.eu.hivemq.cloud"
+CLIENT_NAME = "client"
+PASSWORD = "senha"
+PORT = 8883
+TOPIC = "esp32/bme280/#"
+
+DB_HOST = "localhost"
+DB_USER = "root"
+DB_PASSWORD = "senha"
+DB_NAME = "esp32"
+
