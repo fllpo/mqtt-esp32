@@ -32,17 +32,6 @@ Este projeto está sendo desenvolvido como Trabalho de Conclusão de Curso e con
 
 ## Diagrama do sistema
 
-```mermaid
-graph LR
-    A[ESP32 + BME280] -->|Envia dados via MQTT| B[Broker HiveMQ]
-    B -->|Recebe e reenvia| C[Servidor Flask]
-    C -->|Armazena dados| D[MySQL]
-    C -->|Responde perguntas| E[Frontend Web]
-    E -->|Consulta em Linguagem Natural| F[RAG + Ollama]
-    F -->|Gera SQL| D
-    D -->|Retorna dados| F
-    F -->|Resposta formatada| E
-```
 <!-- 
 
 ## Como usar
