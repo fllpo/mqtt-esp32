@@ -4,6 +4,37 @@
 
 Este projeto está sendo desenvolvido como Trabalho de Conclusão de Curso e consiste em um sistema completo de monitoramento ambiental que coleta dados de um sensor (temperatura, umidade, pressão atmosférica e ponto de orvalho) através de um microcontrolador ESP32, transmite os dados via protocolo MQTT para um servidor Flask utilizando o broker HiveMQ como o intermediário, armazena em um banco de dados MySQL e disponibiliza uma interface web com dashboard e assistente de IA para consulta dos dados.
 
+<<<<<<< HEAD
+=======
+## Funcionalidades Principais
+
+- **Coleta de dados ambientais** via ESP32
+- **Transmissão segura** dos dados usando protocolo MQTT com TLS
+- **Armazenamento** histórico em banco de dados MySQL
+- **Interface web** com visualização dos dados mais recentes
+- **Sistema de perguntas e respostas** utilizando RAG para consultas inteligentes aos dados
+- **Geração automática de consultas SQL** base
+
+## Tecnologias Utilizadas
+
+### Hardware
+
+- Microcontrolador ESP32
+- Sensor BME280 (temperatura, umidade, pressão)
+- Breadboard e componentes eletrônicos
+
+### Software e Infraestrutura
+
+- **Coleta**: C++ (Arduino) + MQTT
+- **Broker**: HiveMQ (Servidor MQTT)
+- **Backend**: Python (Flask + Flask-MQTT)
+- **Banco de Dados**: MySQL
+- **Processamento**: RAG (Haystack + Ollama/Mistral)
+- **Frontend**: HTML/CSS/JavaScript + Bootstrap
+
+<!-- 
+
+>>>>>>> bd12dd1d39849e114a7a89fbe09d314d1311cccb
 ## Como usar
 
 ### 1. Configuração
